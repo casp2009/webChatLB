@@ -26,7 +26,6 @@ install:
 
 clean:
 	rm -rf node_modules
-	rm servers.json
 
 remove:
 	@# Caso esteja ocorrendo erro na instalação, tente fazer make remove para desinstalar o nodejs e npm

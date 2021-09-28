@@ -6,62 +6,56 @@
     </head>
     <body>
         <header>
-            <div id="servidor"></div>
-            <div id="login"></div>
-            <ul id='messages'></ul>
             <form>
-                <input type='text' id='msg' autocomplete="off" autofocus placeholder="Digite seu login"/> 
-                <button id='button1' type='submit'>Logar</button>
+                <input autofocus type='text' id='msg' placeholder="Digite seu login" autocomplete="off" /> 
+                <button id="button1" type='submit'>Logar</button>
             </form>
-            <div id='status'></div>
         </header>
+        <ul id='messages'></ul>
+        <div id='status'></div>
 
         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             $(function(){
-                $('#servidor').html('Servidor: '+window.location);
-                let socket = io();
-                let nickname = '';
+                const socket = io()
+                socket.nickname = ''
 
                 $('form').submit(function(){
-                    $('#msg').prop('placeholder', 'Digite uma mensagem');
-                    $('#button1').html('Enviar');
-                    
-                    if(nickname === ''){
-                        nickname = $('#msg').val();
-                        socket.emit('login', nickname);
-                        $('#login').html(`<b>Conectado como ${nickname}</b>.`);
+                    if(socket.nickname === ''){
+                        socket.nickname = $('#msg').val()
+                        socket.emit('login', socket.nickname)
+
+                        $('#msg').prop('placeholder', 'Digite uma mensagem');
+                        $('#button1').html('Enviar');
+
+                        socket.on('status', function (msg) {
+                            $('#status').html(msg)
+                            console.log(msg)
+                        })
+
+                        $('#msg').keypress(function (evt) {
+                            if (socket.nickname === '') {
+                                return
+                            }
+
+                            socket.emit('status', socket.nickname + ' está escrevendo...')
+                        })
+
+                        $('#msg').keyup(function (evt) {
+                            socket.emit('status', '')
+                        })                        
                     } else {
-                        const msg = $('#msg').val();
-                        socket.emit('chat msg', msg);
-                        $('#messages').append($('<li>').text(msg));
+                        socket.emit('chat msg', $('#msg').val())
                     }
 
-                    $('#msg').val('');
-                    return false;
-                });
+                    $('#msg').val('')
+                    return false
+                })
 
                 socket.on('chat msg', function(msg){
-                    $('#messages').append($('<li>').text(msg));
-                });
-
-                socket.on('status', function(msg){
-                    $('#status').html(msg);
-                    console.log(msg);
-                });
-
-                $('#msg').keypress(function(evt){
-                    if(nickname === ''){
-                        return;
-                    }
-
-                    socket.emit('status', nickname + ' está escrevendo...');
-                });
-
-                $('#msg').keyup(function(evt){
-                    socket.emit('status', '');
-                });
+                    $('#messages').append($('<li>').text(msg))
+                })
             })
         </script>
     </body>
